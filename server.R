@@ -4,24 +4,34 @@ library(gdata)
 library(ggplot2)
 library(knitr)
 
-sys.source("utility/utility.R")
-sys.source("metrics/Model_specifications.R")
-sys.source("models/JM_BM.R")
-sys.source("models/GO_BM_FT.R")
-sys.source("models/GM_BM.R")
-sys.source("models/DSS_BM_FT.R")
-source("models/Wei_NM_FT.R")
-source("trend_tests/Laplace_trend_test.R")
-source("Plot_Raw_Data.R")
-source("Plot_Trend_Tests.R")
-source("DataAndTrendTables.R")
+# Contributors guide step - 1
+# source models here. Put models in the models/'model_name' folder
+sys.source("models/Model_specifications.R")
+sys.source("models/JM/JM_BM.R")
+sys.source("models/GO/GO_BM_FT.R")
+sys.source("models/GM/GM_BM.R")
+sys.source("models/DSS/DSS_BM_FT.R")
+sys.source("models/Wei/Wei_NM_FT.R")
+
+# Trend tests utility functions
 source("trend_tests/RA_Test.R")
-source("RunModels.R")
-source("PlotModelResults.R")
-source("ModelResultTable.R")
+source("trend_tests/Laplace_trend_test.R")
+
+# Plots utility function
+source("utility/plots/Plot_Raw_Data.R")
+source("utility/plots/Plot_Trend_Tests.R")
+source("utility/plots/PlotModelResults.R")
+
+# Data utility functions
+sys.source("utility/data/Data_Tools.R")
+
+# Tables utility functions
+source("utility/tables/DataAndTrendTables.R")
+source("utility/tables/ModelResultTable.R")
+
+# Other utilities
+source("utility/RunModels.R")      # Models run flow
 source("utility/ErrorMessages.R")  # Text for error messages
-source("Plot_Raw_Data.R")
-# Initialize global variables -------------------------------
 
 openFileDatapath <- ""
 #data_global <- data.frame()
@@ -631,7 +641,20 @@ shinyServer(function(input, output, clientData, session) {#reactive shiny functi
   
     output$ModelResultTable <- DT::renderDataTable({
       MR_Table <- NULL
-      if(!is.null(ModelResults)) {
+
+      # Check if modelResultChoice is None and return NULL if true
+      if(length(input$modelResultChoice)==0){
+        return(MR_Table)
+      }
+      if(input$modelResultChoice=="None"){
+        return(MR_Table)
+      }
+      print(ModelResults)
+      if(is.null(ModelResults)){
+        print("NO results to display.")
+        return
+      }
+      else if(!is.null(ModelResults)) {
         if(length(input$AllModelsRun) > 0) {
           
           # User has selected at one model to display as a table.
@@ -819,7 +842,7 @@ output$mytable1 <- DT::renderDataTable({
       ###################################################
       #input$modelDetailChoice <- track_models()
       if(length(ModelsToQuery)>0){
-        source("Detailed_prediction.R")
+        source("utility/prediction/Detailed_prediction.R")
 
         count <<- 0
         tab3_table1<<- data.frame()
@@ -943,7 +966,7 @@ output$saveModelEvals <- downloadHandler(
 
 
 output$mytable2 <- DT::renderDataTable({
-    source("metrics/GOF.R")
+    source("utility/metrics/GOF.R")
     inFile <- input$file
     if(is.null(inFile)){
       return("Please upload a file")
